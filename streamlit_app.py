@@ -1,5 +1,7 @@
 import pickle
 from pathlib import Path
+import os
+import gdown
 
 import numpy as np
 import pandas as pd
@@ -19,9 +21,19 @@ MODEL_PATH = Path("diabetes_model.pkl")
 
 @st.cache_resource
 def load_model():
-    """Load the trained model from the current project folder."""
+    """Load model. If not present locally, download from Google Drive."""
+
+    FILE_ID = "1hRP0fpzMe1bldPhlwfUdshNCG4xwHKwJ"
+
+    if not MODEL_PATH.exists():
+        url = f"https://drive.google.com/uc?id={FILE_ID}"
+        st.info("Downloading ML model from cloud storage...")
+        gdown.download(url, str(MODEL_PATH), quiet=False)
+
     with open(MODEL_PATH, "rb") as f:
-        return pickle.load(f)
+        model = pickle.load(f)
+
+    return model
 
 
 def build_feature_array(
@@ -218,10 +230,6 @@ def render_model_information_page() -> None:
 def main() -> None:
     st.sidebar.title("🧠 AI Health Dashboard")
     page = st.sidebar.radio("Navigation", ["Predict Diabetes", "Model Information"])
-
-    if not MODEL_PATH.exists():
-        st.error("Model file 'diabetes_model.pkl' was not found in the current folder.")
-        st.stop()
 
     model = load_model()
 
